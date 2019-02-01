@@ -168,8 +168,20 @@
         // register event handlers
         $('#upload-attachment-button').on('click', function() {
             attachmentUploader.showUploadDialog(function(addedAttachment) {
-                attachmentTable.row.add(addedAttachment).draw(false);
-                $(attachmentTable.row('#' + addedAttachment.attachmentContentId).node()).addClass('added');
+                var data = attachmentTable.rows().data();
+                var canBeAdded = true;
+                $.each( data, function( index, value ){
+                    if(addedAttachment.filename == value.filename) {
+                        var warningMessage = "<p>Attachment with file name <b>" + addedAttachment.filename + "</b> already exist</p>";
+                        displayDuplicateAttachmentNotAllowed(warningMessage)
+                        canBeAdded = false;
+                        break;
+                    }
+                });
+                if(canBeAdded){
+                    attachmentTable.row.add(addedAttachment).draw(false);
+                    $(attachmentTable.row('#' + addedAttachment.attachmentContentId).node()).addClass('added');
+                }
             });
         });
 
@@ -214,6 +226,20 @@
         }
 
         function displayDeleteNotAllowedWarning(warningMessage) {
+            $.confirm({
+                title: 'Warning',
+                content: warningMessage,
+                buttons: {
+                    cancel: function() {
+                        // close
+                    }
+                },
+                escapeKey: 'cancel',
+                animation: 'zoom',
+            });
+        }
+
+        function displayDuplicateAttachmentNotAllowed(warningMessage) {
             $.confirm({
                 title: 'Warning',
                 content: warningMessage,
